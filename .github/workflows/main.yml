@@ -1,0 +1,43 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libffi-dev python3-dev build-essential ccache libssl-dev openjdk-17-jdk unzip ZIP
+        pip install --upgrade pip
+        pip install buildozer kivy
+
+    - name: Initialize Buildozer config
+      run: |
+        buildozer init
+        # কনফিগারেশন ফাইল অটো-আপডেট করা
+        sed -i 's/#\s*android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy/' buildozer.spec
+
+    - name: Build with Buildozer
+      run: |
+        export BUILDOZER_ALLOW_KIVY_SHARE=1
+        export BUILDOZER_WARN_ON_ROOT=0
+        yes | buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Android-APK
+        path: .buildozer/android/platform/build-android-arm64-v8a_armeabi-v7a/dists/*/*.apk
