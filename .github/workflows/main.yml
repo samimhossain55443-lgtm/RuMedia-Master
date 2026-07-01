@@ -26,9 +26,15 @@ jobs:
         run: |
           export PATH=$PATH:~/.local/bin
           buildozer init
-          # এখানে প্রয়োজনে buildozer.spec ফাইলটি কাস্টমাইজ করতে পারেন
-          buildozer -v android debug
-
+          
+          # অ্যান্ড্রয়েড এসডিকে লাইসেন্স অটোমেটিক অ্যাকসেপ্ট করার কমান্ড
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "\n893547e6f21ba2d96111d61365668a713b91010e\n24333f1a63b6b8211e0012f12cccf1a5f9eeee01\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          
+          # লাইসেন্স পুরোপুরি ইয়েস (yes) করার জন্য ফোর্স রান
+          yes | buildozer -v android debug
+          
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
