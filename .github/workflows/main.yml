@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Source Code
@@ -25,16 +25,14 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libmtdev-dev xclip xsel libjpeg-dev
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
           pip3 install --user --upgrade buildozer Cython virtualenv
 
       - name: Build APK with Buildozer
         run: |
           export PATH=$PATH:~/.local/bin
-          # যদি স্পেক ফাইল না থাকে তবেই নতুন তৈরি হবে
           if [ ! -f buildozer.spec ]; then buildozer init; fi
           
-          # লাইসেন্স ও এসডিকে অটো-অ্যাকসেপ্ট নিশ্চিত করার চূড়ান্ত কমান্ড
           export APP_ANDROID_ACCEPT_SDK_LICENSE=1
           yes | buildozer -v android debug
 
