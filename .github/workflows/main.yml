@@ -5,39 +5,32 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libffi-dev python3-dev build-essential ccache libssl-dev openjdk-17-jdk unzip ZIP
-        pip install --upgrade pip
-        pip install buildozer kivy
+      - name: Install Buildozer and Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libmtdev-dev xclip xsel libjpeg-dev
+          pip3 install --user --upgrade buildozer Cython==0.29.36 virtualenv
 
-    - name: Initialize Buildozer config
-      run: |
-        buildozer init
-        # কনফিগারেশন ফাইল অটো-আপডেট করা
-        sed -i 's/#\s*android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy/' buildozer.spec
+      - name: Build APK with Buildozer
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer init
+          # এখানে প্রয়োজনে buildozer.spec ফাইলটি কাস্টমাইজ করতে পারেন
+          buildozer -v android debug
 
-    - name: Build with Buildozer
-      run: |
-        export BUILDOZER_ALLOW_KIVY_SHARE=1
-        export BUILDOZER_WARN_ON_ROOT=0
-        yes | buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: Android-APK
-        path: .buildozer/android/platform/build-android-arm64-v8a_armeabi-v7a/dists/*/*.apk
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-APK
+          path: bin/*.apk
