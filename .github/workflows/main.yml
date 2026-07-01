@@ -11,45 +11,12 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Build APK with Buildozer Action
+        uses: Ardemails/buildozer-action@v1
         with:
-          python-version: '3.10'
-
-      - name: Set up Java Development Kit (JDK)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Android SDK and Command-line Tools
-        run: |
-          mkdir -p ~/.buildozer/android/platform
-          cd ~/.buildozer/android/platform
-          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mkdir -p android-sdk/cmdline-tools
-          mv cmdline-tools android-sdk/cmdline-tools/latest
-          rm cmdline-tools.zip
-          
-          # লাইসেন্স ফাইল অটো-অ্যাকসেপ্ট নিশ্চিত করা
-          mkdir -p android-sdk/licenses
-          echo -e "\n24333f1a63b6b8211e0012f12cccf1a5f9eeee01\n84831b9409646a918e30573bab4c9c91346d8abd\n24333f1a63b6b8211e0012f12cccf1a5f9eeee01" > android-sdk/licenses/android-sdk-license
-
-      - name: Install Buildozer and System Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libmtdev-dev xclip xsel libjpeg-dev
-          pip3 install --user --upgrade buildozer Cython==0.29.36 virtualenv
-
-      - name: Build APK with Buildozer
-        run: |
-          export PATH=$PATH:~/.local/bin
-          buildozer init
-          
-          # স্পেসিফিকেশন ফোর্সিং এবং সাইড-এনভায়রনমেন্ট সেটআপ
-          export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-          buildozer -v android debug
+          repository_path: '.'
+          buildozer_version: 'stable'
+          command: 'buildozer --verbose android debug'
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
