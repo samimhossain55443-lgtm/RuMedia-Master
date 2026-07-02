@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Source Code
@@ -22,29 +22,44 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            .buildozer
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-
+
       - name: Install System Dependencies
         run: |
-          sudo apt update
-          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
-          pip3 install --user --upgrade "buildozer==1.5.0" "Cython==0.29.33" virtualenv
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev libsqlite3-dev libgdbm-dev \
+            libmtdev-dev xclip xsel libjpeg-dev build-essential \
+            libltdl-dev
+          pip3 install --user --upgrade pip
+          pip3 install --user "buildozer==1.5.0" "Cython==0.29.33" "setuptools<58" virtualenv
 
       - name: Build APK
         run: |
           export PATH=$PATH:~/.local/bin
-          
-          if [ ! -f buildozer.spec ]; then 
+
+          if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
-          
-          # অভ্যন্তরীণ কনফ্লিক্ট এড়াতে ফাইল স্তরে সরাসরি পাথ ও ভার্সন ক্লিন সেটআপ
+
           sed -i 's/#\? \?android.api =.*/android.api = 33/g' buildozer.spec
           sed -i 's/#\? \?android.minapi =.*/android.minapi = 21/g' buildozer.spec
           sed -i 's/#\? \?android.ndk =.*/android.ndk = 25b/g' buildozer.spec
           sed -i 's/#\? \?p4a.branch =.*/p4a.branch = master/g' buildozer.spec
-          
-          export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-          buildozer -v android debug
-          
+          sed -i 's/#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/g' buildozer.spec
+
+          yes | buildozer -v android debug
+
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
