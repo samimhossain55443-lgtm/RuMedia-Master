@@ -28,13 +28,19 @@ jobs:
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
           pip3 install --user --upgrade buildozer Cython virtualenv
 
+      - name: Pre-accept Android SDK Licenses
+        run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "\n24333f1a63b6b8211e0012f12cccf1a5f9eeee01\n84831b9409646a918e30573bab4c9c91346d8abd\n24333f1a63b6b8211e0012f12cccf1a5f9eeee01\n35dbf21b336cb797d320726a4a614b1c9bac65d1" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+
       - name: Build APK with Buildozer
         run: |
           export PATH=$PATH:~/.local/bin
           if [ ! -f buildozer.spec ]; then buildozer init; fi
           
+          # পরিবেশগত ভেরিয়েবল সেট করে লাইসেন্স ও পাইপলাইনের ঝামেলা এড়ানো
           export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-          yes | buildozer -v android debug
+          buildozer -v android debug
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
