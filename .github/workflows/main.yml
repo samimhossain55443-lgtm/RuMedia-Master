@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout Source Code
@@ -26,10 +26,9 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
-          # শুধু এই লাইনে Cython এর সুনির্দিষ্ট স্টেবল ভার্সন লক করে দেওয়া হলো
-          pip3 install --user --upgrade virtualenv "buildozer<=1.5.0" "Cython==0.29.33"
+          pip3 install --user --upgrade "buildozer==1.5.0" "Cython==0.29.33" virtualenv
 
-      - name: Build APK with Locked Specifications
+      - name: Build APK
         run: |
           export PATH=$PATH:~/.local/bin
           
@@ -37,10 +36,11 @@ jobs:
             buildozer init
           fi
           
-          # আপনার আগের সেইম সেটিংস, কোন কিছু পরিবর্তন করা হয়নি
+          # অভ্যন্তরীণ কনফ্লিক্ট এড়াতে ফাইল স্তরে সরাসরি পাথ ও ভার্সন ক্লিন সেটআপ
           sed -i 's/#\? \?android.api =.*/android.api = 33/g' buildozer.spec
           sed -i 's/#\? \?android.minapi =.*/android.minapi = 21/g' buildozer.spec
           sed -i 's/#\? \?android.ndk =.*/android.ndk = 25b/g' buildozer.spec
+          sed -i 's/#\? \?p4a.branch =.*/p4a.branch = master/g' buildozer.spec
           
           export APP_ANDROID_ACCEPT_SDK_LICENSE=1
           buildozer -v android debug
