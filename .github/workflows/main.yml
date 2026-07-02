@@ -26,20 +26,24 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
-          pip3 install --user --upgrade "buildozer<=1.5.0" Cython virtualenv
+          pip3 install --user --upgrade Cython virtualenv "buildozer<=1.5.0"
 
-      - name: Build APK with Fixed SDK/NDK
+      - name: Build APK with Clean Environment
         run: |
           export PATH=$PATH:~/.local/bin
-          if [ ! -f buildozer.spec ]; then buildozer init; fi
           
-          # গুগলের ত্রুটিপূর্ণ সংস্করণ এড়াতে স্টেবল সংস্করণ ফোর্স করা
-          export APP_ANDROID_API=34
-          export APP_ANDROID_MINAPI=21
-          export APP_ANDROID_BUILD_TOOLS_VERSION=34.0.0
-          export APP_ANDROID_NDK_VERSION=25b
+          # পুরনো ভাঙা কনফিগারেশন থাকলে তা ডিলিট করে সম্পূর্ণ ফ্রেশ করা
+          rm -rf .buildozer/
+          rm -f buildozer.spec
+          buildozer init
+          
+          # spec ফাইলের ভেতরে সরাসরি স্টেবল ভার্সনগুলো পুশ করা (যাতে কোনো কনফ্লিক্ট না হয়)
+          sed -i 's/#android.api = 33/android.api = 33/g' buildozer.spec
+          sed -i 's/#android.minapi = 21/android.minapi = 21/g' buildozer.spec
+          sed -i 's/#android.ndk = 25b/android.ndk = 25b/g' buildozer.spec
+          
+          # লাইসেন্স অটো-অ্যাকসেপ্ট করে ফাইনাল রান
           export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-          
           buildozer -v android debug
           
       - name: Upload Finished APK
