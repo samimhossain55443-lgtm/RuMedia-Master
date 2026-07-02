@@ -11,22 +11,42 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # অফিশিয়াল স্টেবল বিল্ডোজার অ্যাকশন যা ভেতরের সব কনফ্লিক্ট নিজে ফিক্স করবে
-      - name: Build APK with Stable Buildozer Action
-        uses: ArtemGovorov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer -v android debug
-          repository_root: .
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
+          # শুধু এই লাইনে Cython এর সুনির্দিষ্ট স্টেবল ভার্সন লক করে দেওয়া হলো
+          pip3 install --user --upgrade virtualenv "buildozer<=1.5.0" "Cython==0.29.33"
 
+      - name: Build APK with Locked Specifications
+        run: |
+          export PATH=$PATH:~/.local/bin
+          
+          if [ ! -f buildozer.spec ]; then 
+            buildozer init
+          fi
+          
+          # আপনার আগের সেইম সেটিংস, কোন কিছু পরিবর্তন করা হয়নি
+          sed -i 's/#\? \?android.api =.*/android.api = 33/g' buildozer.spec
+          sed -i 's/#\? \?android.minapi =.*/android.minapi = 21/g' buildozer.spec
+          sed -i 's/#\? \?android.ndk =.*/android.ndk = 25b/g' buildozer.spec
+          
+          export APP_ANDROID_ACCEPT_SDK_LICENSE=1
+          buildozer -v android debug
+          
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
           name: Android-APK
-          path: ${{ steps.buildozer.outputs.filename }}
+          path: bin/*.apk
