@@ -22,27 +22,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # গিটহাবের অফিশিয়াল অ্যান্ড্রয়েড SDK এবং টুলস সেটআপ (যা এরর দূর করবে)
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install System Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libsqlite3-dev libgdbm-dev libssl-dev libffi-dev cmake libmtdev-dev xclip xsel libjpeg-dev
-          pip3 install --user --upgrade buildozer Cython virtualenv
+          pip3 install --user --upgrade "buildozer<=1.5.0" Cython virtualenv
 
-      - name: Build APK with Buildozer
+      - name: Build APK with Fixed SDK/NDK
         run: |
           export PATH=$PATH:~/.local/bin
           if [ ! -f buildozer.spec ]; then buildozer init; fi
           
-          # গিটহাবের রেডিমেড SDK পাথ Buildozer-কে চিনিয়ে দেওয়া
-          export ANDROID_SDK_HOME=$ANDROID_HOME
+          # গুগলের ত্রুটিপূর্ণ সংস্করণ এড়াতে স্টেবল সংস্করণ ফোর্স করা
+          export APP_ANDROID_API=34
+          export APP_ANDROID_MINAPI=21
+          export APP_ANDROID_BUILD_TOOLS_VERSION=34.0.0
+          export APP_ANDROID_NDK_VERSION=25b
           export APP_ANDROID_ACCEPT_SDK_LICENSE=1
           
           buildozer -v android debug
-
+          
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
