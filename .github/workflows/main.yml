@@ -42,28 +42,29 @@ jobs:
             libmtdev-dev xclip xsel libjpeg-dev build-essential \
             libltdl-dev lzip
           pip3 install --user --upgrade pip
-          pip3 install --user "buildozer==1.5.0" "Cython==0.29.33" "setuptools<58" virtualenv
+          pip3 install --user "buildozer==1.5.0" "Cython==0.29.33" "setuptools<58" virtualenv appdirs sh jinja2 colorama
 
       - name: Build APK
         run: |
           export PATH=$PATH:~/.local/bin
 
-          # যদি রিপোজিটরিতে কোনো কারণে spec ফাইল না থাকে তবে তৈরি করবে
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
 
-          # ১. অ্যাপের নাম ও লোগো অটো-কনফিগারেশন
+          if ! head -n 1 buildozer.spec | grep -q '^\[app\]'; then
+            echo "buildozer.spec এ [app] header পাওয়া যায়নি, ঠিক করা হচ্ছে..."
+            sed -i '1i [app]' buildozer.spec
+          fi
+
+          echo "----- buildozer.spec প্রথম ৫ লাইন -----"
+          head -n 5 buildozer.spec
+          echo "----------------------------------------"
+
           sed -i 's/#\? \?title =.*/title = RuMedia Master/g' buildozer.spec
           sed -i 's/#\? \?icon.filename =.*/icon.filename = %(source.dir)s\/logo.png/g' buildozer.spec
-
-          # ২. ফাইল গ্যালারি ওপেন করার জন্য plyer ও android রিকোয়ারমেন্ট যুক্ত করা
           sed -i 's/#\? \?requirements =.*/requirements = python3,kivy==2.3.0,plyer,android/g' buildozer.spec
-
-          # ৩. মোবাইল মেমোরি অ্যাক্সেস করার সকল পারমিশন ইনজেক্ট করা
           sed -i 's/#\? \?android.permissions =.*/android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE/g' buildozer.spec
-
-          # ৪. স্ট্যান্ডার্ড বিল্ড সেটিংস এবং এনডিকে (NDK) কনফিগারেশন
           sed -i 's/#\? \?android.api =.*/android.api = 33/g' buildozer.spec
           sed -i 's/#\? \?android.minapi =.*/android.minapi = 21/g' buildozer.spec
           sed -i 's/#\? \?android.ndk =.*/android.ndk = 25b/g' buildozer.spec
@@ -71,7 +72,6 @@ jobs:
           sed -i 's/#\? \?p4a.branch =.*/p4a.branch = master/g' buildozer.spec
           sed -i 's/#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/g' buildozer.spec
 
-          # ক্লিন বিল্ড নিশ্চিত করা
           buildozer android clean
           yes | buildozer -v android debug
 
