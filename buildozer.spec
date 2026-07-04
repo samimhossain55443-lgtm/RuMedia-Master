@@ -1,7 +1,9 @@
+[app]
+
 # ১. অ্যাপের নাম পরিবর্তন
 title = RuMedia Master
 
-# ২. লোগো ফাইলের নাম যুক্ত করা 
+# ২. লোগো ফাইলের নাম যুক্ত করা
 icon.filename = %(source.dir)s/logo.png
 
 # ৩. রিকোয়ারমেন্টে plyer যুক্ত করা (গ্যালারি বা ফাইল ম্যানেজার ওপেন করার জন্য)
@@ -12,3 +14,14 @@ android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MANAGE_EXTE
 
 # ৫. অ্যান্ড্রয়েডএক্স সাপোর্ট অন করা (নতুন ফোনে পারমিশন পপআপ আসার জন্য)
 android.enable_androidx = True
+
+package.name = rumediamaster
+package.domain = org.rumedia
+
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+
+version = 1.0
+
+orientation = portrait
+fullscreen = 0
