@@ -42,7 +42,7 @@ jobs:
             libmtdev-dev xclip xsel libjpeg-dev build-essential \
             libltdl-dev lzip
           pip3 install --user --upgrade pip
-          pip3 install --user "buildozer==1.5.0" "Cython==0.29.33" "setuptools<58" virtualenv appdirs sh jinja2 colorama
+          pip3 install --user "buildozer==1.5.0" "Cython==0.29.33" "setuptools<58" virtualenv appdirs sh jinja2 colorama packaging
 
       - name: Build APK
         run: |
